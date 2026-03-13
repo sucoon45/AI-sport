@@ -7,7 +7,6 @@ import {
     ArrowDownRight, 
     CreditCard, 
     Coins, 
-    ExternalLink, 
     Plus, 
     RefreshCw,
     ShieldCheck,
@@ -16,10 +15,12 @@ import {
 
 export default function WalletPage() {
     const [loading, setLoading] = useState(true)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [user, setUser] = useState<any>(null)
     const [isDepositModalOpen, setIsDepositModalOpen] = useState(false)
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false)
     const [amount, setAmount] = useState('')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [banks, setBanks] = useState<any[]>([])
     const [selectedBank, setSelectedBank] = useState('')
     const [accountNumber, setAccountNumber] = useState('')
@@ -29,6 +30,10 @@ export default function WalletPage() {
         try {
             const res = await fetch('/api/user/wallet')
             const data = await res.json()
+            if (data.error || typeof data.balanceNaira !== 'number') {
+                window.location.href = '/login'
+                return
+            }
             setUser(data)
         } catch (e) {
             console.error('Failed to fetch wallet')
@@ -99,7 +104,7 @@ export default function WalletPage() {
         fetchBanks()
     }, [])
 
-    if (loading && !user) return <div className="flex items-center justify-center h-screen text-emerald-500 font-black animate-pulse uppercase tracking-[0.5em]">Syncing Vault...</div>
+    if (loading || !user) return <div className="flex items-center justify-center h-screen text-emerald-500 font-black animate-pulse uppercase tracking-[0.5em]">Syncing Vault...</div>
 
     return (
         <div className="flex flex-col gap-10 pb-20 max-w-[1400px] mx-auto px-4">
@@ -137,7 +142,7 @@ export default function WalletPage() {
 
                         <div className="mb-10">
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">Available Balance</p>
-                            <h2 className="text-5xl font-black text-white tracking-tighter">₦{user.balanceNaira.toLocaleString()}</h2>
+                            <h2 className="text-5xl font-black text-white tracking-tighter">₦{(user?.balanceNaira || 0).toLocaleString()}</h2>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -176,7 +181,7 @@ export default function WalletPage() {
 
                         <div className="mb-10">
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">Portfolio Balance</p>
-                            <h2 className="text-5xl font-black text-white tracking-tighter">{user.balanceCrypto.toFixed(3)} <span className="text-2xl text-cyan-500">ETH</span></h2>
+                            <h2 className="text-5xl font-black text-white tracking-tighter">{(user?.balanceCrypto || 0).toFixed(3)} <span className="text-2xl text-cyan-500">ETH</span></h2>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -210,6 +215,7 @@ export default function WalletPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
                     {user.linkedAccounts && user.linkedAccounts.length > 0 ? (
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         user.linkedAccounts.map((p: any, i: number) => (
                             <div key={i} className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/[0.05] hover:border-emerald-500/20 transition-all group/item">
                                 <div className="flex items-center justify-between mb-6">

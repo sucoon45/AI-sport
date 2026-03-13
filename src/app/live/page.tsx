@@ -4,15 +4,11 @@ import React, { useState, useEffect } from 'react'
 import {
     Trophy,
     Activity,
-    Clock,
     Zap,
     Timer,
     AlertCircle,
     RefreshCw,
-    TrendingUp,
-    BarChart3,
-    ArrowUpRight,
-    Search
+    ArrowUpRight
 } from 'lucide-react'
 
 interface LiveMatch {

@@ -1,21 +1,21 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
     Wallet, 
     TrendingUp, 
-    BarChart3, 
     ArrowUpRight, 
-    Target, 
     ShieldCheck,
     ChevronRight,
-    Search,
     PieChart,
-    ArrowDownRight,
-    Settings2,
     Sliders
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function cn(...inputs: any[]) {
+    return inputs.filter(Boolean).join(' ')
+}
 
 const accuracyData = [
     { name: 'Jan', value: 72 },
@@ -35,6 +35,61 @@ const accuracyData = [
 export default function BankrollPage() {
     const [maxBet, setMaxBet] = useState(2)
     const [riskLevel, setRiskLevel] = useState('Medium')
+    const [balance, setBalance] = useState(0)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [bets, setBets] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const walletRes = await fetch('/api/user/wallet')
+                const walletData = await walletRes.json()
+                if (walletData && typeof walletData.balanceNaira === 'number') {
+                    setBalance(walletData.balanceNaira)
+                }
+
+                const betsRes = await fetch('/api/bets')
+                const betsData = await betsRes.json()
+                if (Array.isArray(betsData)) {
+                    setBets(betsData)
+                }
+            } catch (e) {
+                console.error('Failed to sync financial matrix')
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchData()
+    }, [])
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Synchronizing Financial Matrix...</p>
+                </div>
+            </div>
+        )
+    }
+
+    const wonBets = Array.isArray(bets) ? bets.filter(b => b.result === 'WON') : []
+    const accuracy = Array.isArray(bets) && bets.length > 0 ? Math.round((wonBets.length / bets.length) * 100) : 0
+    const totalYield = Array.isArray(bets) ? bets.reduce((acc, bet) => {
+        const stake = bet.currency === 'NGN' ? bet.stake : bet.stake * 1500;
+        const payout = bet.payout || 0; // payout might be undefined for pending
+        if (bet.result === 'WON') return acc + (payout - stake);
+        if (bet.result === 'LOST') return acc - stake;
+        return acc;
+    }, 0) : 0;
+
+    const statsGrid = [
+        { label: 'Total Bankroll', value: `₦${(balance || 0).toLocaleString()}`, change: 'LIVE', icon: Wallet, color: 'cyan' },
+        { label: 'Yield Volume', value: `₦${(totalYield || 0).toLocaleString()}`, change: (totalYield || 0) >= 0 ? 'GAINING' : 'DEFICIT', icon: TrendingUp, color: 'emerald' },
+        { label: "Signal Accuracy", value: `${accuracy}%`, change: 'Optimal', icon: ArrowUpRight, color: 'emerald' },
+        { label: 'Risk Level', value: riskLevel, change: 'Stable', icon: ShieldCheck, color: 'purple' },
+    ]
 
     return (
         <div className="flex flex-col gap-10 pb-20 max-w-[1400px] mx-auto px-4">
@@ -53,25 +108,20 @@ export default function BankrollPage() {
 
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                    { label: 'Total Bankroll', value: '₦245,000', change: '+12%', icon: Wallet, color: 'cyan' },
-                    { label: 'Monthly ROI', value: '+23.5%', change: '+3.2%', icon: TrendingUp, color: 'emerald' },
-                    { label: "Today's P/L", value: '+₦8,400', change: 'Optimal', icon: ArrowUpRight, color: 'emerald' },
-                    { label: 'Risk Level', value: riskLevel, change: 'Stable', icon: ShieldCheck, color: 'purple' },
-                ].map((item, i) => (
+                {statsGrid.map((item, i) => (
                     <div key={i} className="glass-card group hover-lift relative overflow-hidden">
                         <div className={`absolute top-0 right-0 w-24 h-24 bg-${item.color === 'cyan' ? '[#00f7ff]' : (item.color === 'emerald' ? 'emerald-500' : 'purple-500')}/10 blur-[40px] rounded-full -mr-10 -mt-10`} />
                         <div className="flex items-center justify-between mb-6 relative z-10">
                             <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
                                 <item.icon className="w-5 h-5 text-white" />
                             </div>
-                            <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full uppercase tracking-widest">
+                            <span className={cn("text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest", item.color === 'emerald' ? "text-emerald-400 bg-emerald-500/10" : "text-cyan-400 bg-cyan-500/10")}>
                                 {item.change}
                             </span>
                         </div>
                         <div className="relative z-10">
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{item.label}</p>
-                            <h3 className="text-3xl font-black text-white tracking-tight">{item.value}</h3>
+                            <h3 className="text-2xl font-black text-white tracking-tight">{item.value}</h3>
                         </div>
                     </div>
                 ))}

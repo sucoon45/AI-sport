@@ -18,7 +18,7 @@ export const initializeTransaction = async (email: string, amount: number) => {
             callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/wallet/callback`,
         });
         return response.data;
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error('Paystack Initialization Error:', error.response?.data || error.message);
         throw error;
     }
@@ -28,7 +28,7 @@ export const verifyTransaction = async (reference: string) => {
     try {
         const response = await paystack.get(`/transaction/verify/${reference}`);
         return response.data;
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error('Paystack Verification Error:', error.response?.data || error.message);
         throw error;
     }
@@ -43,7 +43,7 @@ export const initiateTransfer = async (amount: number, recipient: string, reason
             reason,
         });
         return response.data;
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error('Paystack Transfer Error:', error.response?.data || error.message);
         throw error;
     }
@@ -59,7 +59,7 @@ export const createTransferRecipient = async (name: string, accountNumber: strin
             currency: 'NGN',
         });
         return response.data;
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error('Paystack Recipient Error:', error.response?.data || error.message);
         throw error;
     }
@@ -69,7 +69,7 @@ export const getBanks = async () => {
     try {
         const response = await paystack.get('/bank');
         return response.data;
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error('Paystack Banks Error:', error.response?.data || error.message);
         throw error;
     }

@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/request';
 import dbConnect from '@/lib/mongodb';
 import Fixture from '@/models/Fixture';
 

@@ -17,6 +17,7 @@ export async function GET() {
             });
         }
         return NextResponse.json(stats);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
             stats = await Stats.create(data);
         }
         return NextResponse.json(stats);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

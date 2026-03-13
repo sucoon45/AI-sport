@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react'
 import {
     ShieldCheck,
-    ShieldAlert,
     Search,
     History,
     ArrowUpRight,
@@ -13,15 +12,22 @@ import {
 } from 'lucide-react'
 
 export default function HistoryPage() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [bets, setBets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const fetchHistory = async () => {
             try {
                 const res = await fetch('/api/bets');
                 const data = await res.json();
-                setBets(data);
+                if (Array.isArray(data)) {
+                    setBets(data);
+                } else if (data.error === 'Unauthorized') {
+                    window.location.href = '/login';
+                }
             } catch (e) {
                 console.error('Failed to load bet history');
             } finally {
@@ -31,12 +37,20 @@ export default function HistoryPage() {
         fetchHistory();
     }, []);
 
-    const totalVolume = bets.reduce((acc, bet) => acc + bet.stake, 0);
-    const wonBets = bets.filter(b => b.result === 'WON');
-    const winRate = bets.length > 0 ? ((wonBets.length / bets.length) * 100).toFixed(1) : '0.0';
-    const totalYield = bets.reduce((acc, bet) => {
-        if (bet.result === 'WON') return acc + (bet.payout - bet.stake);
-        if (bet.result === 'LOST') return acc - bet.stake;
+    const filteredBets = Array.isArray(bets) ? bets.filter(bet => 
+        (bet.matchText || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (bet.type || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (bet.result || '').toLowerCase().includes(searchQuery.toLowerCase())
+    ) : [];
+
+    const totalVolume = filteredBets.reduce((acc, bet) => acc + (bet.currency === 'NGN' ? bet.stake : bet.stake * 1500), 0);
+    const wonBets = filteredBets.filter(b => b.result === 'WON');
+    const winRate = filteredBets.length > 0 ? ((wonBets.length / filteredBets.length) * 100).toFixed(1) : '0.0';
+    const totalYield = filteredBets.reduce((acc, bet) => {
+        const stake = bet.currency === 'NGN' ? bet.stake : bet.stake * 1500;
+        const payout = bet.currency === 'NGN' ? bet.payout : bet.payout * 1500;
+        if (bet.result === 'WON') return acc + (payout - stake);
+        if (bet.result === 'LOST') return acc - stake;
         return acc;
     }, 0);
 
@@ -59,6 +73,8 @@ export default function HistoryPage() {
                         <input
                             type="text"
                             placeholder="Filter execution logs..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full bg-white/[0.02] border border-white/[0.05] rounded-[2rem] pl-16 pr-6 py-5 text-sm text-white focus:outline-none focus:border-cyan-500/30 focus:bg-white/[0.05] transition-all placeholder:text-slate-600 backdrop-blur-xl"
                         />
                     </div>
@@ -89,12 +105,12 @@ export default function HistoryPage() {
                                     <td colSpan={6} className="px-10 py-20 text-center text-slate-500 font-bold uppercase tracking-widest text-xs">Loading Secure Database...</td>
                                 </tr>
                             )}
-                            {!loading && bets.length === 0 && (
+                            {!loading && filteredBets.length === 0 && (
                                 <tr>
                                     <td colSpan={6} className="px-10 py-20 text-center text-slate-500 font-bold uppercase tracking-widest text-[10px]">No execution records located on the ledger.</td>
                                 </tr>
                             )}
-                            {!loading && bets.map((bet) => (
+                            {!loading && filteredBets.map((bet) => (
                                 <tr key={bet._id || bet.id} className="group hover:bg-white/[0.03] transition-all duration-500">
                                     <td className="px-10 py-8">
                                         <div className="flex flex-col gap-1.5">
@@ -127,11 +143,11 @@ export default function HistoryPage() {
                                         <div className="flex flex-col items-end gap-1.5">
                                             <div className="flex items-center gap-2">
                                                 {bet.result === 'PENDING' ? (
-                                                    <span className="text-base font-black text-slate-600 tabular-nums truncate">EST: {bet.currency === 'ETH' ? '' : '₦'}{(bet.stake * bet.odds).toFixed(bet.currency === 'ETH' ? 4 : 2)}{bet.currency === 'ETH' ? ' ETH' : ''}</span>
+                                                    <span className="text-base font-black text-slate-600 tabular-nums truncate">EST: {bet.currency === 'ETH' ? '' : '₦'}{(bet.stake * (bet.odds || 1)).toFixed(bet.currency === 'ETH' ? 4 : 2)}{bet.currency === 'ETH' ? ' ETH' : ''}</span>
                                                 ) : (
                                                     <>
                                                         <span className={bet.result === 'WON' ? 'text-xl font-black text-emerald-400 tabular-nums' : 'text-base font-black text-slate-600 tabular-nums'}>
-                                                            {bet.currency === 'ETH' ? '' : '₦'}{bet.payout.toFixed(bet.currency === 'ETH' ? 4 : 2)}{bet.currency === 'ETH' ? ' ETH' : ''}
+                                                            {bet.currency === 'ETH' ? '' : '₦'}{(bet.payout || 0).toFixed(bet.currency === 'ETH' ? 4 : 2)}{bet.currency === 'ETH' ? ' ETH' : ''}
                                                         </span>
                                                         {bet.result === 'WON' ? <ArrowUpRight className="w-4 h-4 text-emerald-500" /> : <ArrowDownRight className="w-4 h-4 text-slate-700" />}
                                                     </>
@@ -153,9 +169,10 @@ export default function HistoryPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
                 {[
-                    { label: 'Total Volume', value: `$${totalVolume.toFixed(2)}`, icon: TrendingUp, color: 'emerald' },
+                    { label: 'Total Volume', value: `₦${(totalVolume || 0).toLocaleString()}`, icon: TrendingUp, color: 'emerald' },
                     { label: 'Execution Win Rate', value: `${winRate}%`, icon: ShieldCheck, color: 'cyan' },
-                    { label: 'Total Yield', value: `${totalYield >= 0 ? '+' : '-'}$${Math.abs(totalYield).toFixed(2)}`, icon: ArrowUpRight, color: 'emerald' }
+                    { label: 'Total Yield', value: `${(totalYield || 0) >= 0 ? '+' : '-'}₦${Math.abs(totalYield || 0).toLocaleString()}`, icon: ArrowUpRight, color: 'emerald' }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 ].map((stat: any, i) => (
                     <div key={i} className="glass-card flex items-center justify-between p-10 border-white/[0.03]">
                         <div className="flex flex-col gap-2">

@@ -11,6 +11,8 @@ export interface IUser extends Document {
         username: string;
         connected: boolean;
     }>;
+    tier: 'FREE' | 'VIP' | 'MONTHLY';
+    subscriptionExpiry?: Date;
 }
 
 const UserSchema: Schema = new Schema({
@@ -19,6 +21,8 @@ const UserSchema: Schema = new Schema({
     balanceNaira: { type: Number, default: 0 },
     balanceCrypto: { type: Number, default: 0 },
     walletAddress: { type: String },
+    tier: { type: String, enum: ['FREE', 'VIP', 'MONTHLY'], default: 'FREE' },
+    subscriptionExpiry: { type: Date },
     linkedAccounts: [{
         provider: { type: String, enum: ['SportyBet', 'Bet9ja', 'Football.com'] },
         username: { type: String },

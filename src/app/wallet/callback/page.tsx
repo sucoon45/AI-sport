@@ -1,13 +1,12 @@
 "use client"
 
 import React, { useEffect, useState, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { CheckCircle2, XCircle, Loader2, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 function CallbackContent() {
     const searchParams = useSearchParams()
-    const router = useRouter()
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
     const [message, setMessage] = useState('Verifying transaction...')
     const [newBalance, setNewBalance] = useState<number | null>(null)

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { LogOut, RefreshCw, CheckCircle2 } from 'lucide-react'
+import { LogOut, RefreshCw } from 'lucide-react'
 
 export default function Header() {
     const router = useRouter();
@@ -14,7 +14,9 @@ export default function Header() {
             try {
                 const res = await fetch('/api/user/wallet')
                 const data = await res.json()
-                setBalance(data.balanceNaira)
+                if (data && typeof data.balanceNaira === 'number') {
+                    setBalance(data.balanceNaira)
+                }
             } catch (e) {}
         }
         fetchBalance()
@@ -50,7 +52,7 @@ export default function Header() {
                     <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Node Sync: Optimal</span>
                 </div>
 
-                {balance !== null && (
+                {typeof balance === 'number' && (
                     <div className="flex items-center gap-2 group cursor-pointer bg-white/[0.03] border border-white/5 px-6 py-2.5 rounded-2xl hover:bg-white/10 transition-all">
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Vault:</span>
                         <span className="text-xs font-black text-white">₦{balance.toLocaleString()}</span>

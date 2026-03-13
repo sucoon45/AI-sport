@@ -20,6 +20,7 @@ export interface IFixture extends Document {
         away: number;
     };
     isLive: boolean;
+    isVIP: boolean;
 }
 
 const FixtureSchema: Schema = new Schema({
@@ -41,7 +42,8 @@ const FixtureSchema: Schema = new Schema({
         home: { type: Number, default: 0 },
         away: { type: Number, default: 0 }
     },
-    isLive: { type: Boolean, default: false }
+    isLive: { type: Boolean, default: false },
+    isVIP: { type: Boolean, default: false }
 });
 
 export default mongoose.models.Fixture || mongoose.model<IFixture>('Fixture', FixtureSchema);

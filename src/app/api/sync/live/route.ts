@@ -10,9 +10,15 @@ export async function GET() {
         console.log("🔄 Starting Real-Time Signal Synchronization...");
         const liveMatches = await getLiveMatches();
         const historicalData = await getHistoricalMatches();
+        
+        if (!Array.isArray(liveMatches)) {
+            return NextResponse.json({ success: true, syncCount: 0 });
+        }
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const updatedFixtures = await Promise.all(liveMatches.map(async (liveMatch: any) => {
             // Find existing fixture or create new one
             // We search for matches today involving these teams
@@ -90,6 +96,7 @@ export async function GET() {
             syncCount: updatedFixtures.length,
             timestamp: new Date().toISOString()
         });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         console.error("❌ Sync Error:", error.message);
         return NextResponse.json({ error: error.message }, { status: 500 });

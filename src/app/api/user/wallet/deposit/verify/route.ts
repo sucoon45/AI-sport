@@ -35,6 +35,7 @@ export async function GET(req: Request) {
         } else {
             return NextResponse.json({ error: 'Transaction not successful' }, { status: 400 });
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

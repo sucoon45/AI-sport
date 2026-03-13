@@ -1,21 +1,16 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import {
   TrendingUp,
   Zap,
   Trophy,
-  ArrowUpRight,
-  Target,
-  Clock,
-  ChevronRight,
-  RefreshCw,
   Activity,
-  BarChart3,
   Search,
-  Wallet
+  Target,
+  RefreshCw
 } from 'lucide-react'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import MatchCard from '@/components/MatchCard'
 
 interface DashboardStats {
@@ -46,6 +41,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<DashboardStats | null>(null)
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [liveFixtures, setLiveFixtures] = useState<any[]>([])
   const [lastSync, setLastSync] = useState<string>(new Date().toLocaleTimeString())
 
@@ -54,26 +50,30 @@ export default function DashboardPage() {
       setLoading(true)
       const statsRes = await fetch('/api/stats')
       const statsData = await statsRes.json()
-      setStats(statsData)
+      if (!statsData.error) {
+        setStats(statsData)
+      }
 
       const fixturesRes = await fetch('/api/fixtures')
       const fixturesData = await fixturesRes.json()
-
-      const transformed: TransformedMatch[] = fixturesData.map((f: any) => ({
-        id: f.fixtureId.toString(),
-        homeTeam: f.homeTeam,
-        awayTeam: f.awayTeam,
-        league: f.league,
-        startTime: f.startTime,
-        prediction: {
-          type: f.prediction.type,
-          probability: f.prediction.probability,
-          odds: f.prediction.odds,
-          overUnder: f.prediction.overUnder,
-          signal: f.prediction.signal,
-        }
-      }))
-      setUpcomingMatches(transformed)
+      if (Array.isArray(fixturesData)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const transformed: TransformedMatch[] = fixturesData.map((f: any) => ({
+          id: f.fixtureId.toString(),
+          homeTeam: f.homeTeam,
+          awayTeam: f.awayTeam,
+          league: f.league,
+          startTime: f.startTime,
+          prediction: {
+            type: f.prediction.type,
+            probability: f.prediction.probability,
+            odds: f.prediction.odds,
+            overUnder: f.prediction.overUnder,
+            signal: f.prediction.signal,
+          }
+        }))
+        setUpcomingMatches(transformed)
+      }
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err)
     } finally {
@@ -158,11 +158,11 @@ export default function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {[
-          { label: 'Win Rate', value: `${stats.predictionAccuracy}%`, change: 'Live', icon: Trophy, color: 'emerald' },
-          { label: 'Predictions Today', value: upcomingMatches.length.toString(), change: 'Flat', icon: Target, color: 'cyan' },
-          { label: 'Monthly ROI', value: `${stats.totalProfit > 0 ? '+' : ''}${stats.totalProfit.toFixed(1)}%`, change: 'Live', icon: TrendingUp, color: 'emerald' },
-          { label: 'Pending Bets', value: stats.pendingBets.toString(), change: 'Queue', icon: Activity, color: 'cyan' },
-          { label: 'Active Bots', value: stats.activeBots.toString(), change: 'Live', icon: Zap, color: 'cyan' },
+          { label: 'Win Rate', value: `${stats.predictionAccuracy ?? 0}%`, change: 'Live', icon: Trophy, color: 'emerald' },
+          { label: 'Predictions Today', value: (upcomingMatches?.length || 0).toString(), change: 'Flat', icon: Target, color: 'cyan' },
+          { label: 'Monthly ROI', value: `${(stats.totalProfit || 0) > 0 ? '+' : ''}${(stats.totalProfit || 0).toFixed(1)}%`, change: 'Live', icon: TrendingUp, color: 'emerald' },
+          { label: 'Pending Bets', value: (stats.pendingBets || 0).toString(), change: 'Queue', icon: Activity, color: 'cyan' },
+          { label: 'Active Bots', value: (stats.activeBots || 0).toString(), change: 'Live', icon: Zap, color: 'cyan' },
           { label: 'Matrix Sync', value: 'Active', change: '100%', icon: RefreshCw, color: 'emerald' },
         ].map((item, i) => (
           <div key={i} className="glass-card !p-6 hover-lift">
@@ -183,8 +183,8 @@ export default function DashboardPage() {
         {/* Predictions Grid */}
         <div className="lg:col-span-3 space-y-6">
             <div className="flex items-center justify-between px-2">
-                <h2 className="text-lg font-black text-white uppercase italic tracking-wider">Today's <span className="text-slate-500">Predictions</span></h2>
-                <button className="text-[10px] font-black text-cyan-400 uppercase tracking-widest hover:underline">View All</button>
+                <h2 className="text-lg font-black text-white uppercase italic tracking-wider">Today&apos;s <span className="text-slate-500">Predictions</span></h2>
+                <Link href="/predictions" className="text-[10px] font-black text-cyan-400 uppercase tracking-widest hover:underline">View All</Link>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -268,7 +268,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="mt-6 pt-6 border-t border-white/5 relative z-10">
                     <p className="text-[8px] text-slate-600 uppercase leading-relaxed font-bold tracking-widest italic">
-                        "The Intelligence Matrix is monitoring all football activity in real-time. Signals are generated using a 4-layered neural network with 98.4% data integrity."
+                        &quot;The Intelligence Matrix is monitoring all football activity in real-time. Signals are generated using a 4-layered neural network with 98.4% data integrity.&quot;
                     </p>
                 </div>
             </div>
@@ -278,6 +278,3 @@ export default function DashboardPage() {
   )
 }
 
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ')
-}

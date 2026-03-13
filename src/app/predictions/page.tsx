@@ -3,11 +3,8 @@
 import React, { useState, useEffect } from 'react'
 import {
     Search,
-    Filter,
     Calendar,
-    ChevronDown,
     Zap,
-    Trophy,
     Activity,
     Target,
     BarChart3
@@ -20,6 +17,7 @@ interface MatchData {
     awayTeam: string;
     league: string;
     startTime: string;
+    isVIP?: boolean;
     prediction: {
         type: string;
         probability: number;
@@ -34,32 +32,42 @@ export default function PredictionsPage() {
     const [matches, setMatches] = useState<MatchData[]>([])
     const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState('all')
+    const [userTier, setUserTier] = useState('FREE')
 
-    const fetchPredictions = async () => {
+    const fetchData = async () => {
         try {
             setLoading(true)
+            
+            // Fetch User for Tier Check
+            const userRes = await fetch('/api/user/wallet')
+            const userData = await userRes.json()
+            setUserTier(userData.tier || 'FREE')
+
             const fixturesRes = await fetch('/api/fixtures')
             const fixturesData = await fixturesRes.json()
 
-            const transformed: MatchData[] = fixturesData.map((f: any) => ({
-                id: f.fixtureId.toString(),
-                homeTeam: f.homeTeam,
-                awayTeam: f.awayTeam,
-                league: f.league,
-                startTime: f.startTime,
-                prediction: f.prediction
-            }))
-
-            setMatches(transformed)
+            if (Array.isArray(fixturesData)) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const transformed: MatchData[] = fixturesData.map((f: any) => ({
+                    id: f.fixtureId.toString(),
+                    homeTeam: f.homeTeam,
+                    awayTeam: f.awayTeam,
+                    league: f.league,
+                    startTime: f.startTime,
+                    prediction: f.prediction,
+                    isVIP: f.isVIP
+                }))
+                setMatches(transformed)
+            }
         } catch (err) {
-            console.error('Failed to fetch predictions:', err)
+            console.error('Failed to orbit sync:', err)
         } finally {
             setLoading(false)
         }
     }
 
     useEffect(() => {
-        fetchPredictions()
+        fetchData()
     }, [])
 
     const filteredMatches = matches.filter(m => {
@@ -139,7 +147,7 @@ export default function PredictionsPage() {
                     ))
                 ) : filteredMatches.length > 0 ? (
                     filteredMatches.map((match) => (
-                        <MatchCard key={match.id} match={match} />
+                        <MatchCard key={match.id} match={match} userTier={userTier} />
                     ))
                 ) : (
                     <div className="col-span-full py-40 glass-card text-center relative overflow-hidden flex flex-col items-center justify-center gap-6">

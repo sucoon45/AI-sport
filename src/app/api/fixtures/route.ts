@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Fixture from '@/models/Fixture';
-import Stats from '@/models/Stats';
 import { getCombinedMatchData, getHistoricalMatches } from '@/utils/footballApi';
 import { trainModelAndPredict, getPredictionLabel } from '@/utils/aiModel';
 
@@ -35,6 +34,7 @@ export async function GET() {
         // Process a smaller batch to avoid DB timeouts on first boot
         const batch = combinedData.slice(0, 10);
         
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const transformed = await Promise.all(batch.map(async (matchItem: any) => {
             // Check existence again using a derived ID or something generic since Bzzoiro IDs might vary.
             // Using home + away team string as unique identifier for the day.
@@ -76,9 +76,7 @@ export async function GET() {
                 fixtureId: uniqueId,
                 homeTeam: matchItem.home_team || 'Unknown Home',
                 awayTeam: matchItem.away_team || 'Unknown Away',
-                // fallback league name
                 league: matchItem.stats?.league?.name || 'International League',
-                // mock startTime or parse if it exist
                 startTime: matchItem.stats?.date ? new Date(matchItem.stats.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '15:00',
                 prediction: {
                     type: finalType,
@@ -88,12 +86,14 @@ export async function GET() {
                     signal: finalSignal,
                 },
                 eventDate: matchItem.stats?.date ? new Date(matchItem.stats.date) : new Date(),
+                isVIP: aiResult?.isVIP || false,
             };
 
             return await Fixture.create(newFixture);
         }));
 
         return NextResponse.json(transformed);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         console.error("❌ Matrix Sync Error:", error.message);
         return NextResponse.json({ error: error.message }, { status: 500 });

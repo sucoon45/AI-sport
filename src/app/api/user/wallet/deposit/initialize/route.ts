@@ -21,6 +21,7 @@ export async function POST(req: Request) {
             authorization_url: paystackData.data.authorization_url,
             reference: paystackData.data.reference
         });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

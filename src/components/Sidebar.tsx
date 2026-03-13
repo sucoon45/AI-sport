@@ -13,7 +13,10 @@ import {
     ChevronRight,
     Search,
     Wallet,
-    Target
+    Target,
+    BarChart3,
+    Crown,
+    Bell
 } from 'lucide-react'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -23,18 +26,24 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const navItems = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Predictions', href: '/predictions', icon: Zap },
-    { name: 'Auto Bet', href: '/autobet', icon: Target },
-    { name: 'Odds Scanner', href: '/odds', icon: Search },
-    { name: 'Bet History', href: '/history', icon: History },
-    { name: 'Bankroll', href: '/wallet', icon: Wallet },
-    { name: 'Settings', href: '/admin', icon: Settings },
+    { name: 'Dashboard',       href: '/',               icon: LayoutDashboard },
+    { name: 'Predictions',     href: '/predictions',     icon: Zap },
+    { name: 'VIP Signals',     href: '/vip',             icon: Crown, vip: true },
+    { name: 'Live Scores',     href: '/live',            icon: Trophy },
+    { name: 'Auto Bet',        href: '/autobet',         icon: Target },
+    { name: 'Odds Scanner',    href: '/odds',            icon: Search },
+    { name: 'Bet History',     href: '/history',         icon: History },
+    { name: 'Bankroll',        href: '/bankroll',        icon: BarChart3 },
+    { name: 'Alerts',          href: '/notifications',   icon: Bell, badge: true },
+    { name: 'Vault',           href: '/wallet',          icon: Wallet },
+    { name: 'Console',         href: '/admin',           icon: Settings },
 ]
 
 export default function Sidebar() {
     const pathname = usePathname()
     const [balance, setBalance] = React.useState<number | null>(null)
+    const [tier, setTier] = React.useState<string>('FREE')
+    const [unreadNotifs, setUnreadNotifs] = React.useState(0)
 
     React.useEffect(() => {
         const fetchBalance = async () => {
@@ -42,10 +51,19 @@ export default function Sidebar() {
                 const res = await fetch('/api/user/wallet')
                 const data = await res.json()
                 setBalance(data.balanceNaira)
+                setTier(data.tier || 'FREE')
+            } catch (e) {}
+        }
+        const fetchNotifs = async () => {
+            try {
+                const res = await fetch('/api/notifications')
+                const data = await res.json()
+                setUnreadNotifs(data.unreadCount || 0)
             } catch (e) {}
         }
         fetchBalance()
-        const interval = setInterval(fetchBalance, 30000)
+        fetchNotifs()
+        const interval = setInterval(() => { fetchBalance(); fetchNotifs(); }, 30000)
         return () => clearInterval(interval)
     }, [])
 
@@ -58,7 +76,14 @@ export default function Sidebar() {
                     </div>
                     <div>
                         <h1 className="text-xl font-bold text-white tracking-tight">SportAI</h1>
-                        <span className="text-[10px] font-bold text-emerald-500/80 uppercase tracking-widest">Master Engine</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-emerald-500/80 uppercase tracking-widest">Master Engine</span>
+                            {tier !== 'FREE' && (
+                                <span className="text-[8px] font-black text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                                    <Crown className="w-2.5 h-2.5" />{tier}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -84,22 +109,35 @@ export default function Sidebar() {
                             href={item.href}
                             className={cn(
                                 "flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group relative overflow-hidden",
-                                isActive
-                                    ? "bg-emerald-500/10 text-white shadow-[0_0_20px_rgba(16,185,129,0.05)]"
-                                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                                item.vip
+                                    ? isActive
+                                        ? "bg-amber-500/10 text-white shadow-[0_0_20px_rgba(245,158,11,0.07)]"
+                                        : "text-amber-500/70 hover:text-amber-400 hover:bg-amber-500/5 border border-amber-500/10"
+                                    : isActive
+                                        ? "bg-emerald-500/10 text-white shadow-[0_0_20px_rgba(16,185,129,0.05)]"
+                                        : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
                             )}
                         >
                             <div className="flex items-center gap-4 relative z-10">
-                                <item.icon className={cn(
-                                    "w-5 h-5 transition-transform duration-300 group-hover:scale-110",
-                                    isActive ? "text-emerald-400" : "text-slate-500 group-hover:text-slate-300"
-                                )} />
+                                <div className="relative">
+                                    <item.icon className={cn(
+                                        "w-5 h-5 transition-transform duration-300 group-hover:scale-110",
+                                        item.vip
+                                            ? isActive ? "text-amber-400" : "text-amber-500/60 group-hover:text-amber-400"
+                                            : isActive ? "text-emerald-400" : "text-slate-500 group-hover:text-slate-300"
+                                    )} />
+                                    {item.badge && unreadNotifs > 0 && (
+                                        <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-rose-500 rounded-full text-[7px] font-black text-white flex items-center justify-center leading-none shadow-[0_0_8px_rgba(239,68,68,0.5)]">
+                                            {unreadNotifs > 9 ? '9+' : unreadNotifs}
+                                        </span>
+                                    )}
+                                </div>
                                 <span className={cn("font-medium text-sm", isActive && "font-semibold")}>{item.name}</span>
                             </div>
                             {isActive && (
                                 <>
-                                    <div className="absolute right-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-full" />
-                                    <ChevronRight className="w-4 h-4 text-emerald-400" />
+                                    <div className={cn("absolute right-0 top-0 bottom-0 w-1 rounded-full", item.vip ? "bg-amber-500" : "bg-emerald-500")} />
+                                    <ChevronRight className={cn("w-4 h-4", item.vip ? "text-amber-400" : "text-emerald-400")} />
                                 </>
                             )}
                         </Link>
@@ -117,7 +155,7 @@ export default function Sidebar() {
                                 <TrendingUp className="w-4 h-4 text-emerald-400 animate-bounce-slow" />
                             </div>
                             <div className="text-2xl font-bold text-white tracking-tight mb-1">
-                                {balance !== null ? `₦${balance.toLocaleString()}` : 'Syncing...'}
+                                {typeof balance === 'number' ? `₦${balance.toLocaleString()}` : 'Syncing...'}
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-[10px] font-bold text-slate-500 bg-slate-500/10 px-2.5 py-1 rounded-full">

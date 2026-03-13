@@ -11,6 +11,7 @@ const getUserId = (req: NextRequest) => {
     const token = req.cookies.get('sportai_auth_token')?.value;
     if (!token) return null;
     try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const decoded: any = jwt.verify(token, JWT_SECRET);
         return decoded.userId;
     } catch (e) {
@@ -61,13 +62,14 @@ export async function POST(req: NextRequest) {
         });
 
         // Update Stats (Global stats for all users for now, or per user if preferred)
-        let stats = await Stats.findOne();
+        const stats = await Stats.findOne();
         if (stats) {
             stats.pendingBets += 1;
             await stats.save();
         }
 
         return NextResponse.json({ success: true, bet: newBet, remainingBalance: activeCurrency === 'NGN' ? user.balanceNaira : user.balanceCrypto });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -81,6 +83,7 @@ export async function GET(req: NextRequest) {
 
         const bets = await Bet.find({ userId }).sort({ date: -1 });
         return NextResponse.json(bets);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

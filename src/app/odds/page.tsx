@@ -3,12 +3,9 @@
 import React, { useState } from 'react'
 import { 
     Search, 
-    Filter, 
     TrendingUp, 
-    Zap, 
     ArrowUpRight, 
     Activity,
-    ChevronDown,
     ExternalLink
 } from 'lucide-react'
 
@@ -55,6 +52,14 @@ const scannerData = [
 
 export default function OddsScannerPage() {
     const [selectedLeague, setSelectedLeague] = useState('All Leagues')
+    const [searchQuery, setSearchQuery] = useState('')
+
+    const filteredScannerData = scannerData.filter(data => {
+        const matchesSearch = data.match.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                             data.league.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesLeague = selectedLeague === 'All Leagues' || data.league === selectedLeague;
+        return matchesSearch && matchesLeague;
+    })
 
     return (
         <div className="flex flex-col gap-10 pb-20 max-w-[1400px] mx-auto px-4">
@@ -62,7 +67,7 @@ export default function OddsScannerPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pt-10">
                 <div>
                     <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">Odds <span className="gradient-text italic">Scanner</span></h1>
-                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">High-Frequency Arbitrage Detection</p>
+                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">High-Frequency Arbitrage Detection</p>
                 </div>
                 
                 <div className="flex items-center gap-4">
@@ -71,6 +76,8 @@ export default function OddsScannerPage() {
                         <input 
                             type="text" 
                             placeholder="Find value nodes..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             className="bg-black/40 border border-white/5 rounded-2xl py-3 pl-11 pr-4 text-xs text-white focus:outline-none focus:border-cyan-500/30 transition-all w-64"
                         />
                     </div>
@@ -96,7 +103,7 @@ export default function OddsScannerPage() {
 
             {/* Scanner Grid */}
             <div className="space-y-6">
-                {scannerData.map((data) => (
+                {filteredScannerData.length > 0 ? filteredScannerData.map((data) => (
                     <div key={data.id} className="glass-card !p-0 overflow-hidden group border-white/[0.03] hover:border-cyan-500/20 transition-all duration-500">
                         <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
                             <div className="flex items-center gap-4">
@@ -164,7 +171,14 @@ export default function OddsScannerPage() {
                             </button>
                         </div>
                     </div>
-                ))}
+                )) : (
+                    <div className="glass-card flex flex-col items-center justify-center py-32 border-dashed border-white/10 rounded-[3rem] relative overflow-hidden">
+                        <div className="absolute inset-0 bg-white/[0.01] scanline" />
+                        <Activity className="w-16 h-16 text-slate-800 mb-6 opacity-40" />
+                        <p className="text-slate-500 font-extrabold uppercase tracking-[0.3em] text-[10px] mb-2">No Arbitrage Nodes</p>
+                        <p className="text-slate-600 text-xs font-medium max-w-xs text-center">No value opportunities detected matching your current filters. Scanning continues...</p>
+                    </div>
+                )}
             </div>
         </div>
     )

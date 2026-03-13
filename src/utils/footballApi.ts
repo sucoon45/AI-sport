@@ -40,6 +40,7 @@ export const getCombinedMatchData = async () => {
                 const combinedData = [];
                 for (const match of matches) {
                     const matchId = match.id;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const matchOdds = odds.find((o: any) => o.id === matchId) || null;
                     combinedData.push({
                         home_team: match.home_team,
@@ -68,8 +69,9 @@ export const getCombinedMatchData = async () => {
             });
             
             const data = await response.json();
-            const fixtures = data.fixtures || data.data || data || [];
+            const fixtures = data.fixtures || data.data || (Array.isArray(data) ? data : []);
             
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return fixtures.map((f: any) => ({
                 home_team: f.homeTeam || f.home_team || f.teams?.home?.name || 'Home Team',
                 away_team: f.awayTeam || f.away_team || f.teams?.away?.name || 'Away Team',
@@ -123,7 +125,7 @@ export const getLiveMatches = async () => {
             });
             
             const data = await response.json();
-            return data.fixtures || data.data || data || [];
+            return data.fixtures || data.data || (Array.isArray(data) ? data : []);
         } catch (e) {
              // Mock live data for the "Matrix" experience if API fails
              return [

@@ -9,6 +9,7 @@ const getUserId = (req: NextRequest) => {
     const token = req.cookies.get('sportai_auth_token')?.value;
     if (!token) return null;
     try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const decoded: any = jwt.verify(token, JWT_SECRET);
         return decoded.userId;
     } catch (e) {
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
         return NextResponse.json(user);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -57,6 +59,7 @@ export async function POST(req: NextRequest) {
 
         await user.save();
         return NextResponse.json(user);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

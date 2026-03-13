@@ -9,7 +9,6 @@ import {
     Target, 
     TrendingUp, 
     AlertCircle,
-    Power,
     Activity,
     ChevronRight,
     Settings2

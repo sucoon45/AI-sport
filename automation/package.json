@@ -1,0 +1,14 @@
+{
+  "name": "sportai-automation",
+  "version": "1.0.0",
+  "main": "sportybet_bot.ts",
+  "scripts": {
+    "start": "ts-node sportybet_bot.ts"
+  },
+  "dependencies": {
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.0",
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.0"
+  }
+}

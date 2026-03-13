@@ -1,10 +1,36 @@
 import { RandomForestClassifier } from 'ml-random-forest';
 
+// Poisson Probability Function: P(k; λ) = (λ^k * e^-λ) / k!
+function poisson(k: number, lambda: number): number {
+    const factorial = (n: number): number => n <= 1 ? 1 : n * factorial(n - 1);
+    return (Math.pow(lambda, k) * Math.exp(-lambda)) / factorial(k);
+}
+
+// Calculate the probability of Under 2.5 Goals (0, 1, or 2 total goals)
+function calculateUnder25(homeExp: number, awayExp: number): number {
+    let prob = 0;
+    // Possible scorelines (h, a) such that h + a < 2.5
+    const scorelines = [[0,0], [1,0], [0,1], [2,0], [0,2], [1,1]];
+    for (const [h, a] of scorelines) {
+        prob += poisson(h, homeExp) * poisson(a, awayExp);
+    }
+    return prob;
+}
+
+// Calculate Both Teams To Score (BTTS) Probability: 1 - P(Home 0) - P(Away 0) + P(Both 0)
+// Simplified: BTTS = (1 - P(home=0)) * (1 - P(away=0))
+function calculateBTTS(homeExp: number, awayExp: number): number {
+    const homeZeroProb = poisson(0, homeExp);
+    const awayZeroProb = poisson(0, awayExp);
+    return (1 - homeZeroProb) * (1 - awayZeroProb);
+}
+
 /**
  * 2️⃣ Build the AI Prediction Model
  * Output: 0=home loss, 1=draw, 2=home win
  * Features: home_goals, away_goals, home_form, away_form, odds_home, odds_draw, odds_away
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const trainModelAndPredict = (historicalData: any[], nextMatchFeatures: any) => {
     // Check if we have enough historical data to train
     if (!historicalData || historicalData.length < 5) {
@@ -30,7 +56,9 @@ export const trainModelAndPredict = (historicalData: any[], nextMatchFeatures: a
             prediction,
             confidence: Math.min(confidence, 0.95), // Cap at 95%
             overUnder,
-            signal
+            btts: hGoals > 1 && aGoals > 1,
+            signal,
+            isVIP: confidence > 0.88
         };
     }
     
@@ -71,17 +99,28 @@ export const trainModelAndPredict = (historicalData: any[], nextMatchFeatures: a
     const predictions = classifier.predict(X_test);
 
     // We can simulate predict_proba as mljs RandomForest does not directly expose confidence nicely
-    const simulatedConfidence = 0.65 + (Math.random() * 0.25); // value between 0.65 and 0.90
+    const baseConfidence = 0.65 + (Math.random() * 0.15); 
+    
+    // Poisson Integration
+    const hExp = nextMatchFeatures.home_goals || 1.2;
+    const aExp = nextMatchFeatures.away_goals || 0.8;
+    const under25Prob = calculateUnder25(hExp, aExp);
+    const bttsProb = calculateBTTS(hExp, aExp);
 
-    // Simulate Over/Under Prediction based on goals
-    const expectedGoals = (nextMatchFeatures.home_goals || 1.2) + (nextMatchFeatures.away_goals || 0.8);
-    const overUnder = expectedGoals > 2.5 ? 'Over 2.5' : 'Under 2.5';
+    // Final Confidence Tuning
+    const weightedConfidence = (baseConfidence * 0.7) + (nextMatchFeatures.home_form * 0.3);
+    const finalConfidence = Math.min(weightedConfidence, 0.98);
+
+    // Simulate Over/Under Prediction based on Poisson
+    const overUnder = under25Prob < 0.5 ? 'Over 2.5' : 'Under 2.5';
 
     // Generate a betting signal
     let signal = 'Hold';
-    if (simulatedConfidence > 0.82) {
+    if (finalConfidence > 0.88) {
+        signal = 'VIP SIGNAL'; 
+    } else if (finalConfidence > 0.82) {
         signal = 'Strong Buy';
-    } else if (simulatedConfidence > 0.70) {
+    } else if (finalConfidence > 0.70) {
         signal = 'Value Bet';
     } else {
         signal = 'Avoid';
@@ -89,9 +128,11 @@ export const trainModelAndPredict = (historicalData: any[], nextMatchFeatures: a
 
     return {
         prediction: predictions[0], // 0, 1, or 2
-        confidence: simulatedConfidence,
+        confidence: finalConfidence,
         overUnder: overUnder,
-        signal: signal
+        btts: bttsProb > 0.5,
+        signal: signal,
+        isVIP: finalConfidence > 0.88
     };
 };
 

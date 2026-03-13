@@ -87,6 +87,7 @@ export async function POST(req: Request) {
         }
 
         return NextResponse.json({ success: false, message: 'Invalid action' }, { status: 400 });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         console.error('Auth error:', error);
         return NextResponse.json({ success: false, message: error.message || 'Server Error' }, { status: 500 });

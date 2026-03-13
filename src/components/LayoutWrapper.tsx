@@ -4,7 +4,7 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import SignalAlert from "@/components/SignalAlert";
-import Header from "@/components/Header";
+
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
