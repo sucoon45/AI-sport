@@ -1,4 +1,4 @@
-# Implementation Plan: AI Sport Prediction Application
+# Implementation Plan: BetMind AI Prediction Application
 
 ## Overview
 This plan outlines the development of a full-stack AI-powered football prediction application, featuring a mobile app (React Native/Flutter), a scalable backend (Node.js + Python), and a real-time data engine.

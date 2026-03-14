@@ -8,7 +8,7 @@ const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || '';
 const PAYSTACK_KEY = process.env.PAYSTACK_SECRET_KEY || '';
 
 const stripe = new Stripe(STRIPE_KEY, {
-  apiVersion: '2025-01-27-ac', // Use latest or stable
+  apiVersion: '2026-02-25.clover' as any, // Fix type mismatch or use specific version type
 });
 
 export const createStripePaymentIntent = async (amount: number, currency: string = 'usd', metadata: any = {}) => {

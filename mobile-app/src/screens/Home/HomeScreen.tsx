@@ -19,7 +19,7 @@ const HomeScreen = ({ navigation }: any) => {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>{t('welcome')}</Text>
-          <Text style={styles.title}>AI SPORT</Text>
+          <Text style={styles.title}>BetMind AI</Text>
         </View>
         <TouchableOpacity 
           style={styles.iconButton}

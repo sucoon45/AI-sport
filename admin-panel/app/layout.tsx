@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI SPORT Admin | Intelligence Console",
-  description: "Advanced management console for AI SPORT predictions and user analytics.",
+  title: "BetMind AI Admin | Intelligence Console",
+  description: "Advanced management console for BetMind AI predictions and user analytics.",
   robots: "noindex, nofollow",
 };
 

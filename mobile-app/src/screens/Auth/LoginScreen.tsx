@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { Colors, Gaps } from '../../theme/colors';
 import { supabase } from '../../services/supabase';
 import { Lock, Mail, ChevronRight } from 'lucide-react-native';
@@ -49,9 +49,13 @@ const LoginScreen = ({ navigation }: any) => {
       >
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>AI</Text>
+            <Image 
+              source={require('../../../assets/logo.png')} 
+              style={{ width: 100, height: 100 }} 
+              resizeMode="contain" 
+            />
           </View>
-          <Text style={styles.title}>Welcome to AI SPORT</Text>
+          <Text style={styles.title}>Welcome to BetMind AI</Text>
           <Text style={styles.subtitle}>
             {isSignUp ? 'Create your account to start winning' : 'Login to access premium predictions'}
           </Text>
@@ -144,18 +148,11 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logoContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 20,
-    backgroundColor: Colors.primary,
+    width: 120,
+    height: 120,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
   },
   logoText: {
     color: Colors.background,

@@ -28,7 +28,7 @@ initScheduler();
 
 // Health Check
 app.get('/', (req, res) => {
-  res.json({ message: 'AI Sport Backend API is running' });
+  res.json({ message: 'BetMind AI Backend API is running' });
 });
 
 // Routes

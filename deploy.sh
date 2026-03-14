@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# AI Sport Deployment Script
-echo "🚀 Starting AI Sport Deployment..."
+# BetMind AI Deployment Script
+echo "🚀 Starting BetMind AI Deployment..."
 
 # 1. Pull latest changes if using git
 # git pull origin main

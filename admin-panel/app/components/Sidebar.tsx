@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { LayoutDashboard, Users, Trophy, Wallet, Bell, Settings, LogOut, Cpu } from 'lucide-react';
 
 const Sidebar = () => {
@@ -14,10 +15,8 @@ const Sidebar = () => {
   return (
     <div className="w-64 h-screen bg-surface border-r border-border flex flex-col fixed left-0 top-0">
       <div className="p-6 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-          <Trophy className="text-primary w-5 h-5" />
-        </div>
-        <span className="font-bold text-xl tracking-tight">AI SPORT <span className="text-primary text-xs ml-1">ADMIN</span></span>
+        <Image src="/logo.png" alt="BetMind AI Logo" width={32} height={32} className="rounded-lg" />
+        <span className="font-bold text-xl tracking-tight">BetMind AI <span className="text-primary text-xs ml-1">ADMIN</span></span>
       </div>
 
       <nav className="flex-1 px-4 py-4 space-y-1">

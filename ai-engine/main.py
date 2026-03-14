@@ -11,7 +11,7 @@ load_dotenv()
 from models.poisson_model import predict_match
 from models.xgboost_model import ai_model
 
-app = FastAPI(title="AI Sport Prediction Engine")
+app = FastAPI(title="BetMind AI Prediction Engine")
 
 class PredictionRequest(BaseModel):
     home_stats: dict
@@ -23,7 +23,7 @@ class PremiumRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message": "AI Sport Prediction Engine is running"}
+    return {"message": "BetMind AI Prediction Engine is running"}
 
 @app.post("/predict")
 async def predict(request: PredictionRequest):

@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "AI SPORT - Predictions & Tips",
-    "slug": "ai-sport-pro",
+    "name": "BetMind AI - Predictions & Tips",
+    "slug": "betmind-ai",
     "version": "1.0.4",
-    "description": "Premium AI-powered sports predictions and football analytics. Get 95% accuracy signals for top European leagues.",
+    "description": "Premium AI-powered sports predictions and football analytics with BetMind AI.",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
