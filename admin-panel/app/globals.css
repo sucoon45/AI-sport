@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+:root {
+  --background: #050A18;
+  --foreground: #F8FAFC;
+  --primary: #00F3FF;
+  --secondary: #00FF88;
+  --accent: #FFD700;
+  --surface: #0E1629;
+  --border: #1E293B;
+  --text-muted: #94A3B8;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-text-muted: var(--text-muted);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.glass {
+  background: rgba(14, 22, 41, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glow-primary {
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
+}
+
+.matrix-grid {
+  background-image: radial-gradient(circle at 2px 2px, rgba(0, 243, 255, 0.05) 1px, transparent 0);
+  background-size: 24px 24px;
+}
