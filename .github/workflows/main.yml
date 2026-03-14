@@ -3,19 +3,69 @@ name: AI Sport CI/CD
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build-and-deploy:
+  validate:
+    name: Lint & Build Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build and Test
-        run: |
-          docker-compose build
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Deploy to Server
-        if: github.ref == 'refs/heads/main'
+      - name: Install Dependencies (Backend)
+        run: |
+          cd backend-api
+          npm install
+
+      - name: Build Backend
+        run: |
+          cd backend-api
+          npm run build
+
+      - name: Install Dependencies (Admin Panel)
+        run: |
+          cd admin-panel
+          npm install
+
+      - name: Lint Admin Panel
+        run: |
+          cd admin-panel
+          npm run lint
+
+      - name: Build Admin Panel
+        run: |
+          cd admin-panel
+          npm run build
+
+  prepare-docker:
+    name: Docker Build Verification
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Production Images (Test)
+        run: |
+          docker-compose -f docker-compose.prod.yml build
+
+  deploy:
+    name: Production Deployment
+    needs: prepare-docker
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -24,4 +74,5 @@ jobs:
           script: |
             cd /var/www/ai-sport
             git pull origin main
+            chmod +x deploy.sh
             ./deploy.sh
